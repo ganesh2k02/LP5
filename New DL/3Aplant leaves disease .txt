@@ -1,0 +1,107 @@
+from google.colab import drive
+drive.mount('/content/drive')
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator,load_img,img_to_array
+import numpy as np
+
+train_dir = r'/content/drive/MyDrive/Colab_Notebooks/3/A/Train'
+test_dir = r'/content/drive/MyDrive/Colab_Notebooks/3/A/Test'
+
+img_size = 224
+batch_size = 32
+
+# importing required libraries
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+# reading the image
+testImage = img.imread('/content/drive/MyDrive/Colab_Notebooks/3/A/Train/Tomato___healthy/000bf685-b305-408b-91f4-37030f8e62db___GH_HL Leaf 308.1.
+JPG')
+# displaying the image
+plt.imshow(testImage)
+
+# importing required libraries
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+# reading the image
+testImage = img.imread('/content/drive/MyDrive/Colab_Notebooks/3/A/Train/
+Tomato___Target_Spot/c6a1dc1f-e0fd-40df-8726-5db2b0be7150___Com.G_TgS_FL␣
+0736.JPG')
+# displaying the image
+plt.imshow(testImage)
+
+
+train_datagen = ImageDataGenerator(rescale=1./255)
+train_generator = train_datagen.flow_from_directory(train_dir,target_size=(img_size,img_size),batch_size=batch_size,class_mode='categorical')
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+test_generator = test_datagen.flow_from_directory(test_dir,target_size=(img_size,img_size),batch_size=batch_size,class_mode='categorical')
+
+class_names=list(train_generator.class_indices)
+class_names
+
+class_names=list(test_generator.class_indices)
+class_names
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense,Dropout, BatchNormalization
+
+
+model = Sequential()
+model.add((Conv2D(32, (3,3), activation='relu', input_shape=(img_size,img_size, 3))))
+model.add(BatchNormalization())
+model.add((MaxPooling2D(2,2)))
+model.add((Conv2D(64, (3,3), activation='relu')))
+model.add(BatchNormalization())
+model.add((MaxPooling2D(2,2)))
+model.add((Conv2D(64, (3,3), activation='relu')))
+model.add(BatchNormalization())
+model.add((MaxPooling2D(2,2)))
+model.add((Conv2D(128, (3,3), activation='relu')))
+model.add(BatchNormalization())
+model.add((MaxPooling2D(2,2)))
+model.add((Flatten()))
+model.add((Dense(128, activation='relu')))
+model.add((Dropout(0.2)))
+model.add((Dense(64, activation='relu')))
+model.add((Dense(train_generator.num_classes, activation='softmax')))
+model.summary()
+
+model.compile(optimizer='adam', loss='categorical_crossentropy',metrics=['accuracy'])
+
+model.fit(train_generator, epochs=50, validation_data=test_generator)
+
+loss, accuracy = model.evaluate(test_generator)
+print("Loss :",loss)
+print("Accuracy (Test Data) :",accuracy*100)
+
+img_path =r'/content/drive/MyDrive/Colab_Notebooks/3/A/Train/Tomato___Target_Spot/c6a1dc1f-e0fd-40df-8726-5db2b0be7150___Com.G_TgS_FL 0736.JPG'
+img = load_img(img_path, target_size=(224, 224))
+img_array = img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)
+img_array /= 255
+
+print(img_array.shape)
+
+prediction = model.predict(img_array)
+
+predicted_class = np.argmax(prediction)
+print('Predicted class:', class_names[predicted_class])
+
+
+img_path =r'/content/drive/MyDrive/Colab_Notebooks/3/A/Train/Tomato___Tomato_mosaic_virus/dcb74f2b-c523-4147-b9ce-690800411273___PSU_CG 2154_270deg.JPG'
+img = load_img(img_path, target_size=(224, 224))
+img_array = img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)
+img_array /= 255
+prediction = model.predict(img_array)
+predicted_class = np.argmax(prediction)
+print('Predicted class:', class_names[predicted_class])
+
+img_path =r'/content/drive/MyDrive/Colab_Notebooks/3/A/Test/Tomato___Tomato_Yellow_Leaf_Curl_Virus/bf09ead6-7015-4942-bbf7-e509193885ab___YLCV_NREC 2830.JPG'
+img = load_img(img_path, target_size=(224, 224))
+img_array = img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)
+img_array /= 255
+prediction = model.predict(img_array)
+predicted_class = np.argmax(prediction)
+print('Predicted class:', class_names[predicted_class])
